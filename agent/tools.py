@@ -879,8 +879,10 @@ CATALOG: Tuple[ToolSpec, ...] = (
     ),
     ToolSpec(
         "calculator", "calculator", "Cost", "good",
-        "Evaluate an arithmetic expression exactly — use it for every total, "
-        "sum, discount or comparison instead of doing maths yourself. "
+        "MANDATORY arithmetic tool: use this for every sum, total, difference, "
+        "comparison, percentage, or any numeric calculation. Never do arithmetic "
+        "in your head, never produce a numeric answer without calling this tool, "
+        "and never reason through raw math when a calculator call would answer it. "
         "Example: calculator('210 + 5*110 + 35') → '795'.",
         (("expression", "Numbers with + - * / ** % and parentheses."),),
         _impl_calculator,
