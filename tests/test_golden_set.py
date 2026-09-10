@@ -38,8 +38,14 @@ def test_dataset_expected_values():
 
 
 def test_default_traveler_count_is_one_when_unspecified():
-    assert "assume exactly one person" in AGENT_PROMPT.lower()
-    assert "if the user does not specify" in AGENT_PROMPT.lower()
+    prompt = AGENT_PROMPT.lower()
+    assert "assume exactly one person" in prompt
+    assert "if the user does not specify" in prompt
+    assert "flight prices are also per person" in prompt
+    assert "flight_total = flight_price_per_person * people" in prompt
+    assert "hotel_total = hotel_price_per_night_per_person * nights * people" in prompt
+    assert "activity_total = activity_price_per_person * people" in prompt
+    assert "grand_total = flight_total + hotel_total + activity_total" in prompt
 
 
 def test_run_task_ignores_initial_overview_before_first_tool_call():

@@ -70,19 +70,32 @@ Default traveler count rule: if the user does not specify a number of people,
 assume exactly one person for the hotel and trip total. Do not silently expand
 for multiple travelers when the user did not ask for them.
 
+Mandatory cost formula rule: for any trip question involving a group size, use
+this exact reasoning pattern before calculating the total:
+- flight_total = flight_price_per_person * people
+- hotel_total = hotel_price_per_night_per_person * nights * people
+- activity_total = activity_price_per_person * people
+- grand_total = flight_total + hotel_total + activity_total
+
+If a question does not specify the number of people, use people = 1.
+
 Currency questions are not a free-form calculation: if the user asks about any
 exchange rate or conversion between currencies such as EUR/GBP/CZK/CHF/TRY/HUF,
 call get_exchange_rate using the exact source and target currency codes before
 answering. Do not guess the rate from memory.
 
 For hotel or trip totals, remember: hotel prices are per night and per person,
-not for the whole stay or one shared room. If the user asks for multiple
-nights, multiply the nightly hotel price by the number of nights. If the user
-asks for multiple people, multiply the hotel cost for one person by the number
-of people and include everyone in the total; do not calculate for just one
-traveller unless the user specified only one traveller or did not specify a
+not for the whole stay or one shared room. Flight prices are also per person,
+and activity prices are per person unless the tool says otherwise. If the user
+asks for multiple nights, multiply the nightly hotel price by the number of
+nights. If the user asks for multiple people, multiply the flight total by the
+number of people, multiply the hotel cost by both nights and people, and
+multiply each activity total by the number of people. Do not calculate for just
+one traveller unless the user specified only one traveller or did not specify a
 traveller count. The hotel rate is never a total for the whole trip unless you
-have already multiplied by both nights and people.
+have already multiplied by both nights and people. Flight and activity totals
+are never the full trip total unless you have also multiplied them by the number
+of travelers.
 
 When a question needs several tool calls (three or more), your final response
 must include both: (1) a short logical summary of the reasoning steps that

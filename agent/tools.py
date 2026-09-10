@@ -550,7 +550,7 @@ def _impl_get_flight(airport=None, **_) -> str:
             "to translate a city first."
         )
     info = _AIRPORTS[code]
-    return f"Round-trip Home↔{code}: €{info['oneway'] * 2}, {info['duration']} each way"
+    return f"Round-trip Home↔{code}: €{info['oneway'] * 2} per person, {info['duration']} each way"
 
 
 def _impl_get_one_way_fare(airport=None, **_) -> str:
@@ -836,8 +836,10 @@ CATALOG: Tuple[ToolSpec, ...] = (
         "get_flight", "get_flight", "Flights", "good",
         "Round-trip airfare and flight duration from home to one AIRPORT (by "
         "code, e.g. BCN). It rejects city names — get the code from "
-        "get_airport_code first. "
-        "Example: get_flight('PRG') → 'Round-trip Home↔PRG: €90, 1h10 each way'.",
+        "get_airport_code first. The returned value is the round-trip price per "
+        "person, not the total trip cost for a family or group. If the user asks "
+        "for multiple people, multiply this price by the number of travelers. "
+        "Example: get_flight('PRG') → 'Round-trip Home↔PRG: €90 per person, 1h10 each way'.",
         (("airport", "An airport code, e.g. BCN, ZRH, LHR."),),
         _impl_get_flight,
     ),
@@ -858,8 +860,9 @@ CATALOG: Tuple[ToolSpec, ...] = (
         "list_activities", "list_activities", "Activities", "good",
         "ALL activities in a DISTRICT with prices — use it for 'what can I do' or "
         "'cheapest activity' questions. Keyed by district, not city: use "
-        "list_districts first. "
-        "Example: list_activities('Old Town') → 'River cruise 550 CZK, Beer tasting 450 CZK'.",
+        "list_districts first. The activity prices are per person. If the trip is "
+        "for multiple people, multiply each activity price by the number of travelers. "
+        "Example: list_activities('Old Town') → 'River cruise 550 CZK per person, Beer tasting 450 CZK per person'.",
         (("district", "A single district name."),),
         _impl_list_activities,
     ),
