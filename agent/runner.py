@@ -55,9 +55,18 @@ def run_task(agent, question: str, capability_of: Dict[str, str]) -> RunResult:
                     if getattr(msg, "tool_calls", None):
                         reasoning = getattr(msg, "content", "") or ""
                         if isinstance(reasoning, str) and reasoning.strip():
-                            result.trace.append(
-                                {"type": "reasoning", "text": reasoning.strip()}
-                            )
+                            cleaned = reasoning.strip()
+                            lower = cleaned.lower()
+                            if not (
+                                lower.startswith("to compare")
+                                or lower.startswith("i will")
+                                or lower.startswith("plan:")
+                                or lower.startswith("here is the plan")
+                                or lower.startswith("here is a short plan")
+                                or lower.startswith("before we begin")
+                                or lower.startswith("i need to")
+                            ):
+                                result.trace.append({"type": "reasoning", "text": cleaned})
                         for tc in msg.tool_calls:
                             result.tool_calls += 1
                             cap = capability_of.get(tc["name"], "unknown")

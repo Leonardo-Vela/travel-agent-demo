@@ -1,7 +1,10 @@
 import os
 
 import pytest
+from langchain_core.messages import AIMessage
 
+from agent.prompts import AGENT_PROMPT
+from agent.runner import run_task
 from agent.tools import _AIRPORTS, _CONDITIONS, _HOTELS, _EXCHANGE_PER_EUR
 
 # These tests are intentionally written before the golden framework code itself,
@@ -32,6 +35,38 @@ def test_dataset_expected_values():
     assert _AIRPORTS["IST"]["oneway"] == 130
     assert max(_HOTELS["altstadt"], key=lambda row: row[2])[0] == "Altstadt Boutique"
     assert max(_HOTELS["sultanahmet"], key=lambda row: row[2])[0] == "Palace View"
+
+
+def test_default_traveler_count_is_one_when_unspecified():
+    assert "assume exactly one person" in AGENT_PROMPT.lower()
+    assert "if the user does not specify" in AGENT_PROMPT.lower()
+
+
+def test_run_task_ignores_initial_overview_before_first_tool_call():
+    class FakeAgent:
+        def stream(self, *_args, **_kwargs):
+            yield {
+                "assistant": {
+                    "messages": [
+                        AIMessage(
+                            content="To compare the trip, I need the hotel rate and the flight cost. I will gather those facts next.",
+                            tool_calls=[{
+                                "id": "call_1",
+                                "name": "list_hotels",
+                                "args": {"district": "Old Town"},
+                            }],
+                        )
+                    ]
+                }
+            }
+            yield {
+                "tools": {"messages": [AIMessage(content="Old Town Inn 1875 CZK/night per person", tool_call_id="call_1")]}
+            }
+
+    result = run_task(FakeAgent(), "How much is the hotel in Prague?", {"list_hotels": "Hotels"})
+
+    assert not any("To compare the trip" in entry.get("text", "") for entry in result.trace if entry.get("type") == "reasoning")
+    assert [entry["name"] for entry in result.trace if entry.get("type") == "tool"] == ["list_hotels"]
 
 
 @pytest.mark.skipif(not os.getenv("OPENAI_API_KEY"), reason="OpenAI API key not configured")
