@@ -603,7 +603,7 @@ def _impl_list_hotels(district=None, **_) -> str:
         )
     cur = _currency_of_district(d)
     rows = " | ".join(
-        f"{name} {_money(price, cur)}/night, {rating}★"
+        f"{name} {_money(price, cur)}/night per person, {rating}★"
         for name, price, rating in _HOTELS[d]
     )
     return f"{d.title()} hotels: {rows}"
@@ -619,7 +619,7 @@ def _impl_get_hotel(hotel=None, **_) -> str:
                 city = _DISTRICTS[d]["city"]
                 return (
                     f"{name} ({d.title()}, {city.title()}): "
-                    f"{_money(price, _currency_of_district(d))}/night, "
+                    f"{_money(price, _currency_of_district(d))}/night per person, "
                     f"rated {rating}/5"
                 )
     names = ", ".join(n for rows in _HOTELS.values() for n, *_ in rows)
@@ -645,7 +645,7 @@ def _impl_find_hotels_in_budget(district=None, max_price=None, **_) -> str:
     ]
     if not matches:
         return _err(f"no {d.title()} hotels under {_money(int(cap), cur)}.")
-    rows = " | ".join(f"{n} {_money(p, cur)}/night, {r}★" for n, p, r in matches)
+    rows = " | ".join(f"{n} {_money(p, cur)}/night per person, {r}★" for n, p, r in matches)
     return f"{d.title()} hotels under {_money(int(cap), cur)}: {rows}"
 
 
@@ -841,10 +841,10 @@ CATALOG: Tuple[ToolSpec, ...] = (
     # ----- Hotels (keyed by district) -------------------------------------
     ToolSpec(
         "list_hotels", "list_hotels", "Hotels", "good",
-        "ALL hotels in one DISTRICT with price per night and rating — use it to "
-        "compare or pick a hotel. Keyed by district, not city: use "
+        "ALL hotels in one DISTRICT with price per night per person and rating — "
+        "use it to compare or pick a hotel. Keyed by district, not city: use "
         "list_districts first. "
-        "Example: list_hotels('Soho') → 'Soho Central 175 GBP/night, 4.2★'.",
+        "Example: list_hotels('Soho') → 'Soho Central 175 GBP/night per person, 4.2★'.",
         (("district", "A single district name."),),
         _impl_list_hotels,
     ),
@@ -861,14 +861,17 @@ CATALOG: Tuple[ToolSpec, ...] = (
     # ----- Cost / bundling ------------------------------------------------
     ToolSpec(
         "get_exchange_rate", "get_exchange_rate", "Cost", "good",
-        "Provides the exchange rates between currencies like EUR, GBP, TRY, CZK etc. "
-        "Use it to convert local hotel and activity prices into EUR or compare "
-        "currency values before adding up a trip total. Flights are always in EUR, "
-        "but some cities price hotels and activities in their own currency (for "
-        "example Prague in CZK), so convert those to EUR before comparing or "
-        "summing them. Example: get_exchange_rate('CZK','EUR') → '1 CZK = 0.04 EUR ...'.",
-        (("from_currency", "Source currency code, e.g. 'CZK'."),
-         ("to_currency", "Target currency code, e.g. 'EUR'.")),
+        "This is the exact tool for exchange-rate questions and currency conversion. "
+        "Use it whenever the user asks about EUR/GBP/CZK/CHF/TRY/HUF or any rate "
+        "between currencies. It returns the numeric conversion factor between the "
+        "source and target currency. Use it to convert local hotel and activity "
+        "prices into EUR or compare currency values before adding up a trip total. "
+        "Flights are always in EUR, but some cities price hotels and activities in "
+        "their own currency (for example Prague in CZK), so convert those to EUR "
+        "before comparing or summing them. Example: get_exchange_rate('EUR','GBP') "
+        "→ '1 EUR = 0.85 GBP' or get_exchange_rate('CZK','EUR') → '1 CZK = 0.04 EUR'.",
+        (("from_currency", "Source currency code, e.g. 'EUR' or 'CZK'."),
+         ("to_currency", "Target currency code, e.g. 'GBP' or 'EUR'.")),
         _impl_get_exchange_rate,
     ),
     ToolSpec(
