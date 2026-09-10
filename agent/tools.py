@@ -606,7 +606,10 @@ def _impl_list_hotels(district=None, **_) -> str:
         f"{name} {_money(price, cur)}/night per person, {rating}★"
         for name, price, rating in _HOTELS[d]
     )
-    return f"{d.title()} hotels: {rows}"
+    return (
+        f"{d.title()} hotels: {rows}. "
+        "Important: these are nightly prices PER PERSON, not a total trip price."
+    )
 
 
 def _impl_get_hotel(hotel=None, **_) -> str:
@@ -841,9 +844,11 @@ CATALOG: Tuple[ToolSpec, ...] = (
     # ----- Hotels (keyed by district) -------------------------------------
     ToolSpec(
         "list_hotels", "list_hotels", "Hotels", "good",
-        "ALL hotels in one DISTRICT with price per night per person and rating — "
-        "use it to compare or pick a hotel. Keyed by district, not city: use "
-        "list_districts first. "
+        "ALL hotels in one DISTRICT with the nightly room rate per person and the "
+        "rating. This is not a trip total; it is the price for one person for one "
+        "night. If a question includes multiple nights or multiple people, you must "
+        "multiply the returned nightly rate by each factor before calculating a total. "
+        "Keyed by district, not city: use list_districts first. "
         "Example: list_hotels('Soho') → 'Soho Central 175 GBP/night per person, 4.2★'.",
         (("district", "A single district name."),),
         _impl_list_hotels,
