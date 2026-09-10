@@ -203,7 +203,10 @@ _HOTELS: Dict[str, List[Tuple[str, int, float]]] = {
     "gothic quarter": [("Rambla Rooms", 95, 4.1)],
     "barceloneta": [("Beachside Inn", 120, 4.3)],
     # Prague is in Czechia — prices in CZK.
-    "old town": [("Old Town Inn", 1875, 4.3)],
+    "old town": [
+        ("Old Town Inn", 1875, 4.3),
+        ("Old Town Courtyard", 2240, 4.6),
+    ],
     "mala strana": [("Riverside Prague", 3250, 4.7)],
     # London — prices in GBP.
     "south kensington": [("The Kensington", 210, 4.6),
@@ -857,22 +860,13 @@ CATALOG: Tuple[ToolSpec, ...] = (
     ),
     # ----- Cost / bundling ------------------------------------------------
     ToolSpec(
-        "get_trip_cost", "get_trip_cost", "Cost", "decoy",
-        "Convenience bundle: round-trip flight plus hotel × nights for a city. "
-        "It PICKS a district and hotel for you, EXCLUDES activities, and does NOT "
-        "convert currencies — so its total is wrong for a city that prices hotels "
-        "in a non-euro currency. "
-        "Example: get_trip_cost('Prague', 5) → 'Prague 5 nights: €9465'.",
-        (("city", "A single city name."), ("nights", "Number of nights, e.g. 5.")),
-        _impl_get_trip_cost,
-    ),
-    ToolSpec(
         "get_exchange_rate", "get_exchange_rate", "Cost", "good",
-        "Convert between currencies: how much 1 unit of one currency is worth in "
-        "another. Flights are always in EUR, but some cities price hotels and "
-        "activities in their own currency (e.g. Prague in CZK), so convert those "
-        "to EUR before adding everything up. "
-        "Example: get_exchange_rate('CZK','EUR') → '1 CZK = 0.04 EUR ...'.",
+        "Provides the exchange rates between currencies like EUR, GBP, TRY, CZK etc. "
+        "Use it to convert local hotel and activity prices into EUR or compare "
+        "currency values before adding up a trip total. Flights are always in EUR, "
+        "but some cities price hotels and activities in their own currency (for "
+        "example Prague in CZK), so convert those to EUR before comparing or "
+        "summing them. Example: get_exchange_rate('CZK','EUR') → '1 CZK = 0.04 EUR ...'.",
         (("from_currency", "Source currency code, e.g. 'CZK'."),
          ("to_currency", "Target currency code, e.g. 'EUR'.")),
         _impl_get_exchange_rate,
@@ -895,8 +889,8 @@ CATALOG_BY_ID: Dict[str, ToolSpec] = {t.id: t for t in CATALOG}
 GROUPS: Tuple[str, ...] = ("Directory", "Weather", "Flights", "Hotels",
                            "Activities", "Cost")
 
-# Starting (broken) selection: only the convenient-but-wrong bundle is on.
-BROKEN_ENABLED = frozenset({"get_trip_cost"})
+# Starting (broken) selection: intentionally avoid the removed bundled trip-cost tool.
+BROKEN_ENABLED = frozenset({"get_exchange_rate"})
 
 # Presenter's reference selection: the good primitives, no decoys, no god tool.
 REFERENCE_ENABLED = frozenset({
