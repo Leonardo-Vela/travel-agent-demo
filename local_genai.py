@@ -210,8 +210,14 @@ def _resolve_openai_credentials() -> tuple[str, str]:
     """Return the effective OpenAI key and model, covering env and Streamlit secrets."""
 
     api_key = (os.getenv("OPENAI_API_KEY") or _read_openai_secret_from_streamlit() or "").strip()
-    model_name = (os.getenv("OPENAI_MODEL") or _read_openai_model_from_streamlit() or "gpt-4o-mini").strip()
+    model_name = (os.getenv("OPENAI_MODEL") or _read_openai_model_from_streamlit() or "gpt-5").strip()
     return api_key, model_name
+
+
+def _is_reasoning_model(model_name: str | None) -> bool:
+    """OpenAI reasoning models are the o-series / newer reasoning-capable variants."""
+    name = (model_name or "").strip().lower()
+    return name.startswith("o") or name.startswith("gpt-5")
 
 
 def bootstrap_openai(
@@ -241,12 +247,19 @@ def bootstrap_openai(
 
     from langchain_openai import ChatOpenAI
 
+    reasoning_effort = None
+    effective_temperature = temperature
+    if _is_reasoning_model(resolved_model):
+        reasoning_effort = os.getenv("OPENAI_REASONING_EFFORT", "medium")
+        effective_temperature = None
+
     return ChatOpenAI(
         model=resolved_model,
-        temperature=temperature,
+        temperature=effective_temperature,
         max_tokens=max_completion_tokens,
         api_key=resolved_api_key,
         base_url=base_url or os.getenv("OPENAI_BASE_URL"),
+        reasoning_effort=reasoning_effort,
     )
 
 
